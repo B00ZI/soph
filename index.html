@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CallTrack — Gestion Clients</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-bg">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+  </div>
+  <div class="login-card" id="loginCard">
+    <span class="brand-mark"><i class="fa-solid fa-headset"></i></span>
+    <h1>CallTrack</h1>
+    <p class="login-sub">Connectez-vous pour gérer vos clients</p>
+    <form id="loginForm">
+      <div class="input-group">
+        <i class="fa-solid fa-user"></i>
+        <input type="text" id="loginName" placeholder="Votre nom" autocomplete="off" required>
+      </div>
+      <div class="input-group">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="loginPass" placeholder="Mot de passe" autocomplete="off" required>
+      </div>
+      <p id="loginError" class="login-error" role="alert"></p>
+      <button type="submit" class="btn-primary btn-full">
+        <span>Se connecter</span>
+        <i class="fa-solid fa-arrow-right-long"></i>
+      </button>
+      <p class="login-hint"><i class="fa-solid fa-shield-halved"></i> Première connexion ? Ce nom et ce mot de passe sont enregistrés sur cet appareil.</p>
+    </form>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="app hidden">
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark sm"><i class="fa-solid fa-headset"></i></span>
+      <span class="brand-name">CallTrack</span>
+    </div>
+    <div class="user-chip">
+      <div class="avatar" id="userAvatar">A</div>
+      <div class="user-meta">
+        <strong id="userNameDisplay">Agent</strong>
+        <span>En ligne</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <h2>Mes clients</h2>
+        <p class="muted">Du premier appel jusqu'au paiement, suivez chaque client</p>
+      </div>
+      <button class="btn-primary" id="openAddClient">
+        <i class="fa-solid fa-plus"></i> Ajouter un client
+      </button>
+    </div>
+
+    <!-- KPI cards -->
+    <section class="kpis" id="kpis"></section>
+
+    <!-- Toolbar -->
+    <section class="toolbar" aria-label="Filtres">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Rechercher un client...">
+      </div>
+      <select id="filterCategory" aria-label="Filtrer par catégorie">
+        <option value="">Toutes les catégories</option>
+      </select>
+      <select id="filterStatus" aria-label="Filtrer par statut">
+        <option value="">Tous les statuts</option>
+        <option value="nouveau">Nouveau</option>
+        <option value="devis">Devis envoyé</option>
+        <option value="appel">Appel effectué</option>
+        <option value="meet">Google Meet fait</option>
+        <option value="paye">Payé</option>
+      </select>
+      <button class="btn-ghost btn-export" id="exportBtn" title="Exporter en CSV (ouvrable dans Excel)">
+        <i class="fa-solid fa-file-export"></i> Exporter
+      </button>
+    </section>
+
+    <!-- Table -->
+    <section class="table-wrap">
+      <table class="client-table" aria-label="Liste des clients">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Catégorie</th>
+            <th>Service</th>
+            <th>Progression</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state hidden">
+        <i class="fa-solid fa-inbox"></i>
+        <p>Votre premier client vous attend</p>
+        <button class="btn-primary" id="emptyAddBtn"><i class="fa-solid fa-plus"></i> Ajouter un client</button>
+      </div>
+    </section>
+
+    <!-- Pagination -->
+    <section class="pagination" id="pagination"></section>
+  </main>
+</div>
+
+<!-- ============ MODAL: ADD/EDIT CLIENT ============ -->
+<div id="modalOverlay" class="modal-overlay hidden">
+  <div class="modal-card" id="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <h3 id="modalTitle"><i class="fa-solid fa-user-plus"></i> Nouveau client</h3>
+      <button class="icon-btn" id="closeModal" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <form id="clientForm" class="modal-body">
+      <input type="hidden" id="clientId">
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="clientName">Nom complet</label>
+          <div class="input-group">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="clientName" placeholder="Ex: Ahmed Benali" required>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="clientPhone">Téléphone</label>
+          <div class="input-group">
+            <i class="fa-solid fa-phone"></i>
+            <input type="tel" id="clientPhone" placeholder="Ex: 06 12 34 56 78">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="clientCategory">Catégorie</label>
+          <div class="input-group">
+            <i class="fa-solid fa-layer-group"></i>
+            <select id="clientCategory" required>
+              <option value="" disabled selected>Choisir une catégorie</option>
+              <option value="Développement Web">Développement Web</option>
+              <option value="Design Graphique">Design Graphique</option>
+              <option value="Marketing Digital">Marketing Digital</option>
+              <option value="SEO">SEO</option>
+              <option value="Consulting">Consulting</option>
+              <option value="Application Mobile">Application Mobile</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="clientWants">Souhaite le service ?</label>
+          <div class="input-group">
+            <i class="fa-solid fa-handshake"></i>
+            <select id="clientWants">
+              <option value="" selected>À définir</option>
+              <option value="oui">Oui</option>
+              <option value="non">Non</option>
+              <option value="peut-etre">Peut-être</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="clientService">Service souhaité</label>
+          <div class="input-group">
+            <i class="fa-solid fa-list-check"></i>
+            <select id="clientService" required>
+              <option value="" disabled selected>Choisir un service</option>
+              <option value="Nouveau projet">Nouveau projet</option>
+              <option value="Refonte / Amélioration">Refonte / Amélioration</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Abonnement mensuel">Abonnement mensuel</option>
+              <option value="Consultation seule">Consultation seule</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="clientNotes">Notes</label>
+          <div class="input-group textarea-group">
+            <i class="fa-solid fa-note-sticky"></i>
+            <textarea id="clientNotes" rows="2" placeholder="Détails, remarques sur l'appel..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <span class="section-label">Étapes du suivi</span>
+      <div class="steps-grid">
+        <label class="step-toggle">
+          <input type="checkbox" id="stepAppel">
+          <span class="toggle-visual"><i class="fa-solid fa-phone-volume"></i></span>
+          <span class="toggle-text">Appel effectué</span>
+        </label>
+        <label class="step-toggle">
+          <input type="checkbox" id="stepDevis">
+          <span class="toggle-visual"><i class="fa-solid fa-file-invoice"></i></span>
+          <span class="toggle-text">Devis envoyé</span>
+        </label>
+        <label class="step-toggle">
+          <input type="checkbox" id="stepMeet">
+          <span class="toggle-visual"><i class="fa-brands fa-google"></i></span>
+          <span class="toggle-text">Google Meet fait</span>
+        </label>
+        <label class="step-toggle">
+          <input type="checkbox" id="stepPaye">
+          <span class="toggle-visual"><i class="fa-solid fa-money-check-dollar"></i></span>
+          <span class="toggle-text">Payé</span>
+        </label>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" id="cancelModal">Annuler</button>
+        <button type="submit" class="btn-primary" id="saveClientBtn">
+          <i class="fa-solid fa-check"></i> <span>Enregistrer</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ CONFIRM DELETE ============ -->
+<div id="confirmOverlay" class="modal-overlay hidden">
+  <div class="confirm-card" id="confirmCard" role="dialog" aria-modal="true">
+    <i class="fa-solid fa-triangle-exclamation warn-icon"></i>
+    <h3>Supprimer ce client ?</h3>
+    <p>Cette action est irréversible.</p>
+    <div class="confirm-actions">
+      <button class="btn-ghost" id="cancelDelete">Annuler</button>
+      <button class="btn-danger" id="confirmDelete"><i class="fa-solid fa-trash"></i> Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
